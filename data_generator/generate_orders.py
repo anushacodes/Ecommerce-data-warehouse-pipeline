@@ -42,6 +42,7 @@ def generate_orders(order_date: str, n: int = 1000):
 
 def save_and_upload(df: pd.DataFrame, order_date: str):
     
+    # write to a temporary local file first
     with tempfile.NamedTemporaryFile(suffix=".parquet", delete=False) as tmp:
         local_path = tmp.name
 
@@ -53,7 +54,6 @@ def save_and_upload(df: pd.DataFrame, order_date: str):
 
     # clean up temp file
     os.remove(local_path)
-
 
 if __name__ == "__main__":
     # default: generate orders for today's date
