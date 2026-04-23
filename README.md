@@ -2,11 +2,9 @@
 
 ### Project Overview
 
-This repository contains a self-learning batch data engineering project built with AWS, Apache Airflow, and Amazon Redshift.
+This repository contains a batch data engineering project built with AWS, Apache Airflow, and Amazon Redshift.
 
 The pipeline simulates e-commerce order processing from raw data generation to analytics reporting. Data is generated as parquet files, stored in S3, orchestrated with Airflow, loaded into Redshift staging tables, transformed into a star schema, validated with quality checks, and exposed through a Dash dashboard.
-
-
 
 ### Features
 
@@ -19,18 +17,15 @@ The pipeline simulates e-commerce order processing from raw data generation to a
 - Build daily analytics metrics for reporting.
 - Visualize KPI trends in a Dash dashboard.
 
-
-
 ### Architecture
 
 <img width="3569" height="1069" alt="diagram" src="https://github.com/user-attachments/assets/7b31e3f4-f326-4fb0-94e2-078b04ed026c" />
 
-The orchestration DAG is located at `airflow/dags/ecommerce_pipeline_dag.py` and runs daily at `06:00 UTC`.
-
+The orchestration DAG is located at `dag.py` and runs daily at `06:00 UTC`.
 
 ### Steps
 
-1. Generate source data using `data_generator/generate_orders.py`.
+1. Generate source data using `generate_orders.py`.
 2. Upload parquet files to `orders/date=YYYY-MM-DD/orders.parquet` in S3.
 3. Load S3 partitions into `staging_orders` using Redshift `COPY`.
 4. Transform staging data into `dim_*` tables and `fact_orders`.
@@ -45,8 +40,6 @@ Loads only partitions newer than `MAX(order_date)` already present in `staging_o
 
 2. Backfill load  
 Triggered via Airflow DAG config (`start_date`, `end_date`) and reloads all partitions in the specified range.
-
-
 
 ### Data Model
 
@@ -65,39 +58,27 @@ Triggered via Airflow DAG config (`start_date`, `end_date`) and reloads all part
 
 #### DDL scripts
 
-1. `sql/create_tables/staging_tables.sql`
-2. `sql/create_tables/warehouse_tables.sql`
-
-
+1. `sql/create_tables.sql`
 
 ### Project Structure
 
 ```text
 ecommerce-data-warehouse-pipeline/
-├── airflow/dags/ecommerce_pipeline_dag.py
-├── config/settings.py
-├── data_generator/generate_orders.py
+├── dag.py
+├── dashboard.py
+├── generate_orders.py
+├── utils.py
 ├── scripts/
-│   ├── redshift_loader.py
-│   ├── data_quality_checks.py
-│   ├── metadata_logger.py
-│   └── upload_to_s3.py
+│   └── pipeline_tasks.py
 ├── sql/
-│   ├── create_tables/
-│   │   ├── staging_tables.sql
-│   │   └── warehouse_tables.sql
-│   ├── transformations/transform_orders.sql
-│   └── analytics/
-│       ├── daily_sales_metrics.sql
-│       ├── customer_metrics.sql
-│       └── top_products.sql
-├── dashboard/app.py
+│   ├── analytics.sql
+│   ├── create_tables.sql
+│   ├── quality_checks.sql
+│   └── transform_orders.sql
 └── docs/
     ├── data_dictionary.md
     └── schema_overview.md
 ```
-
-
 
 ### Requirements
 
@@ -106,8 +87,6 @@ ecommerce-data-warehouse-pipeline/
 - Amazon Redshift cluster
 - IAM role for Redshift `COPY` access to S3
 - Apache Airflow 2.9+
-
-
 
 ### Setup Instructions
 
@@ -132,10 +111,9 @@ Update `.env` with AWS and Redshift credentials.
 
 #### 3. Create Redshift tables
 
-Execute the following scripts in Redshift:
+Execute the following script in Redshift:
 
-1. `sql/create_tables/staging_tables.sql`
-2. `sql/create_tables/warehouse_tables.sql`
+1. `sql/create_tables.sql`
 
 #### 4. Configure Airflow
 
@@ -149,7 +127,7 @@ airflow users create \
   --firstname Admin --lastname User \
   --role Admin --email admin@example.com
 
-cp airflow/dags/ecommerce_pipeline_dag.py ~/airflow/dags/
+cp dag.py ~/airflow/dags/
 ```
 
 #### 5. Start Airflow services
@@ -162,13 +140,12 @@ airflow scheduler
 airflow webserver --port 8080
 ```
 
-
 ### Running the Pipeline
 
 #### Generate one sample batch
 
 ```bash
-python data_generator/generate_orders.py
+python generate_orders.py
 ```
 
 #### Trigger full DAG
@@ -184,11 +161,10 @@ airflow dags trigger ecommerce_pipeline \
   --conf '{"start_date":"2026-01-01","end_date":"2026-01-05"}'
 ```
 
-
 ### Dashboard
 
 ```bash
-python dashboard/app.py
+python dashboard.py
 ```
 
 Open `http://localhost:8050`.
@@ -201,8 +177,6 @@ Dashboard outputs include:
 - Revenue trend over time
 - Orders per day
 - Top products by revenue
-
-
 
 ### Example SQL Queries
 
@@ -227,4 +201,3 @@ GROUP BY customer_id
 HAVING COUNT(*) > 1
 ORDER BY orders DESC;
 ```
-
