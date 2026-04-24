@@ -1,9 +1,0 @@
-pandas
-pyarrow
-faker
-boto3
-psycopg2-binary
-apache-airflow
-dash
-plotly
-python-dotenv
