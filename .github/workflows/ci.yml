@@ -1,0 +1,39 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          
+      - name: Install uv
+        run: pip install uv
+        
+      - name: Install dependencies
+        run: uv pip install --system -r pyproject.toml
+        
+      - name: Check syntax
+        run: |
+          python -m py_compile utils.py
+          python -m py_compile generate_orders.py
+          python -m py_compile dashboard.py
+          python -m py_compile dag.py
+          python -m py_compile scripts/pipeline_tasks.py
+          
+      - name: Build Docker Image
+        run: docker build -t ecommerce-data-pipeline:latest .
