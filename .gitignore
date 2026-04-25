@@ -207,3 +207,7 @@ marimo/_lsp/
 __marimo__/
 .DS_Store
 .python-version
+architecture/pipeline_architecture.md
+docs/schema_overview.md
+old_ream.md
+UNOFFICIAL_SETUP_GUIDE.md
